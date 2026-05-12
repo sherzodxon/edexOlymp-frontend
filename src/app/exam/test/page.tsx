@@ -355,7 +355,7 @@ const shuffleArray = <T,>(array: T[]): T[] => {
             {q?.imageUrl && (
               <div className="flex justify-center">
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${q.imageUrl}`}
+                  src={`${process.env.NEXT_PUBLIC_API_URL || 'https://edex-olymp.onrender.com'}${q.imageUrl}`}
                   alt={`${currentIdx + 1}-savol rasmi`}
                   className="max-h-64 max-w-full rounded-xl border border-border object-contain bg-bg"
                   loading="lazy"

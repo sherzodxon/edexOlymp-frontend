@@ -70,7 +70,7 @@ export default function AdminPage() {
   const handleAuth = async () => {
     if (!keyInput.trim()) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/admin/config`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://edex-olymp.onrender.com'}/api/admin/config`, {
         headers: { 'x-admin-key': keyInput.trim() },
       });
       if (!res.ok) throw new Error();
@@ -208,7 +208,7 @@ function ResultsTab({ adminKey }: { adminKey: string }) {
   };
 
   const handleDownload = (studentId: number, type: 'docs' | 'pptx' = 'docs') => {
-    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const base = process.env.NEXT_PUBLIC_API_URL || 'https://edex-olymp.onrender.com';
     fetch(`${base}/api/admin/${type}/${studentId}/download`, { headers: { 'x-admin-key': adminKey } })
       .then(r => {
         if (!r.ok) throw new Error();
@@ -237,7 +237,7 @@ function ResultsTab({ adminKey }: { adminKey: string }) {
     return <span className={`text-xs font-mono px-2 py-0.5 rounded-full border ${cls}`}>{label}</span>;
   };
 
-  const exportUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/admin/export`;
+  const exportUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://edex-olymp.onrender.com'}/api/admin/export`;
 
   return (
     <div className="space-y-4">
@@ -477,7 +477,7 @@ function QuestionsTab({ adminKey }: { adminKey: string }) {
     if (draft.imageFile && res.success && res.data?.id) {
       const formData = new FormData();
       formData.append('image', draft.imageFile);
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const base = process.env.NEXT_PUBLIC_API_URL || 'https://edex-olymp.onrender.com';
       await fetch(`${base}/api/admin/questions/${res.data.id}/image`, {
         method: 'POST',
         headers: { 'x-admin-key': adminKey },
@@ -603,7 +603,7 @@ function QuestionsTab({ adminKey }: { adminKey: string }) {
                     <p className="text-text text-lg leading-relaxed">{q.questionText}</p>
                     {q.imageUrl && (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${q.imageUrl}`}
+                        src={`${process.env.NEXT_PUBLIC_API_URL || 'https://edex-olymp.onrender.com'}${q.imageUrl}`}
                         alt="savol rasmi"
                         className="mt-2 max-h-24 max-w-xs rounded-lg border border-border object-contain bg-bg"
                       />

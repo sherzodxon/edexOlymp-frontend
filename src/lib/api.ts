@@ -1,4 +1,5 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL ;
+const BASE = "https://edex-olymp.onrender.com";
+console.log(BASE);
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
