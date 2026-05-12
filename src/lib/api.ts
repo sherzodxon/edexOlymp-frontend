@@ -1,5 +1,4 @@
-// src/lib/api.ts
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const BASE = process.env.NEXT_PUBLIC_API_URL ;
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
