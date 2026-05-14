@@ -4,18 +4,29 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStoredUser, MAX_TYPING_SCORE, MAX_TEST_SCORE, MAX_DOCS_SCORE, MAX_PPTX_SCORE, MAX_TOTAL_SCORE } from '@/lib/storage';
 import { StoredUser } from '@/types';
-import { Trophy, Keyboard, FileQuestion, FileText, Presentation } from 'lucide-react';
+import { Trophy, Keyboard, FileQuestion, FileText, Presentation, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ResultsPage() {
   const router = useRouter();
   const [user, setUser] = useState<StoredUser | null>(null);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   useEffect(() => {
     const stored = getStoredUser();
     if (!stored) { router.replace('/register'); return; }
     setUser(stored);
   }, [router]);
+
+  const handleLogout = () => {
+    try {
+      // Imtihon bilan bog'liq barcha ma'lumotlarni tozalash
+      localStorage.clear();
+    } catch {
+      // localStorage mavjud bo'lmasa ham davom etamiz
+    }
+    router.replace('/register');
+  };
 
   if (!user) return null;
 
@@ -55,7 +66,7 @@ export default function ResultsPage() {
           <ScoreRow
             icon={<Keyboard size={16} />}
             label="Typing"
-            sub="WPM × 0.5 (max)"
+            sub="WPM × 0.6 (max)"
             score={user.typingScore}
             max={MAX_TYPING_SCORE}
             color="accent"
@@ -94,6 +105,43 @@ export default function ResultsPage() {
               text-text font-mono text-sm py-3 rounded-xl hover:border-muted transition-all">
             🏆 Reytingni ko'rish
           </Link>
+
+          {!confirmLogout ? (
+            <button
+              onClick={() => setConfirmLogout(true)}
+              className="w-full flex items-center justify-center gap-2 bg-transparent border border-border
+                text-muted font-mono text-sm py-3 rounded-xl hover:border-error hover:text-error
+                transition-all duration-150"
+            >
+              <LogOut size={16} />
+              Chiqish
+            </button>
+          ) : (
+            <div className="bg-surface border border-error/30 rounded-xl p-4 space-y-3 animate-fade-in">
+              <p className="text-text text-sm text-center">
+                Rostdan ham chiqmoqchimisiz?
+              </p>
+              <p className="text-muted text-xs text-center font-mono">
+                Barcha ma'lumotlar brauzerdan o'chiriladi
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setConfirmLogout(false)}
+                  className="bg-surface border border-border text-sub font-mono text-sm py-2.5
+                    rounded-xl hover:border-muted transition-all"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-error/10 border border-error/40 text-error font-mono text-sm py-2.5
+                    rounded-xl hover:bg-error/20 active:scale-[0.98] transition-all"
+                >
+                  Ha, chiqish
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-center text-muted text-xs font-mono">

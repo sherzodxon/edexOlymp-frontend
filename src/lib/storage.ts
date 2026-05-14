@@ -5,15 +5,15 @@ const STORAGE_KEY = 'edex_exam_user';
 export const MAX_TYPING_ATTEMPTS = 3;
 
 // Maksimal ballar
-export const MAX_TYPING_SCORE = 25;   // wpm * 0.5, 50+ wpm = 25
+export const MAX_TYPING_SCORE = 30;   // wpm * 0.6, 50+ wpm = 30
 export const MAX_TEST_SCORE   = 20;   // 20 ta savol, har biriga 1 ball
-export const MAX_DOCS_SCORE   = 20;
+export const MAX_DOCS_SCORE   = 25;
 export const MAX_PPTX_SCORE   = 25;
 export const MAX_TOTAL_SCORE  = MAX_TYPING_SCORE + MAX_TEST_SCORE + MAX_DOCS_SCORE + MAX_PPTX_SCORE; // 90
 
-// Typing ball formulasi: wpm * 0.5, max 25
+// Typing ball formulasi: wpm * 0.6, max 25
 export function calcTypingScore(wpm: number): number {
-  return parseFloat(Math.min(wpm * 0.5, MAX_TYPING_SCORE).toFixed(2));
+  return parseFloat(Math.min(wpm * 0.6, MAX_TYPING_SCORE).toFixed(2));
 }
 
 export function generateToken(): string {

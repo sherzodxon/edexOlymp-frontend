@@ -213,7 +213,7 @@ export default function TypingExamPage() {
               <div className="bg-bg rounded-xl p-4 border border-border space-y-2">
                 <ScoreLine label="Typing bali" value={`${calcTypingScore(best?.wpm ?? 0).toFixed(1)} / ${MAX_TYPING_SCORE}`} />
                 <ScoreLine label="Aniqlik" value={`${(best?.accuracy ?? 0).toFixed(1)}%`} />
-                <p className="text-muted text-[10px] text-center mt-1">1 WPM = 0.5 ball · 50+ WPM = max 25 ball</p>
+                <p className="text-muted text-[10px] text-center mt-1">1 WPM = 0.6 ball · 50+ WPM = max 30 ball</p>
               </div>
               <p className="text-sub text-sm">Typing bosqichi yakunlandi ✓</p>
               <button

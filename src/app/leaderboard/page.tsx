@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen flex flex-col px-4 py-8 relative">
       <div className="fixed inset-0 pointer-events-none opacity-[0.02] grid-bg" />
-      <div className="max-w-5xl mx-auto w-full space-y-6">
+      <div className="max-w-8xl mx-auto w-full space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -197,12 +197,6 @@ export default function LeaderboardPage() {
             </div>
           </div>
         )}
-
-        <div className="text-center">
-          <Link href="/results" className="text-muted text-xs font-mono hover:text-sub transition-colors">
-            ← Mening natijalarim
-          </Link>
-        </div>
       </div>
     </div>
   );
