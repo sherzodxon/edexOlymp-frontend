@@ -298,7 +298,7 @@ export default function DocsExamPage() {
               <div>
                 <p className="text-sub text-sm font-mono mb-1">Word fayl bali</p>
                 <p className="text-5xl font-mono font-bold text-accent">{score.toFixed(1)}</p>
-                <p className="text-sub text-sm mt-1">/ 20 ball</p>
+                <p className="text-sub text-sm mt-1">/ 25 ball</p>
               </div>
             </div>
 

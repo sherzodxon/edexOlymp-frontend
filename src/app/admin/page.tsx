@@ -1046,7 +1046,7 @@ function ConfigTab({ adminKey }: { adminKey: string }) {
             <div>
               <h3 className="font-mono text-sm font-semibold text-text">Baholash mezonlari</h3>
               <p className="text-muted text-xs mt-0.5">
-                Word — max 20 ball · PowerPoint — max 25 ball · 5-6, 7-8, 9 sinflar uchun alohida.
+                Word — max 25 ball · PowerPoint — max 25 ball · 5-6, 7-8, 9 sinflar uchun alohida.
               </p>
             </div>
             <div className="text-xs font-mono text-muted">
@@ -1056,7 +1056,7 @@ function ConfigTab({ adminKey }: { adminKey: string }) {
           {/* File kind selector */}
           <div className="flex gap-2 mb-2">
             {([
-              { kind: 'docs' as CriteriaKind, label: 'Word (max 20)' },
+              { kind: 'docs' as CriteriaKind, label: 'Word (max 25)' },
               { kind: 'pptx' as CriteriaKind, label: 'PowerPoint (max 25)' },
             ]).map(({ kind, label }) => (
               <button
