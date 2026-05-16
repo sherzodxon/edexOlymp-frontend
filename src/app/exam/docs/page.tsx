@@ -16,30 +16,66 @@ interface FeedbackItem {
   hint?: string;
 }
 
+// ── FIX: Vaqt tugaganda 5 soniya countdown bilan o'tish ──
+function ExpiredRedirect({ onRedirect }: { onRedirect: () => void }) {
+  const [count, setCount] = useState(5);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          onRedirect();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [onRedirect]);
+
+  return (
+    <div className="animate-scale-in text-center max-w-sm space-y-4">
+      <AlertTriangle size={48} className="text-error mx-auto" />
+      <h2 className="text-xl font-semibold text-text">Vaqt tugadi</h2>
+      <p className="text-sub text-sm">
+        Word fayl yuklash vaqti tugadi. Keyingi bosqichga o'tkazilmoqda...
+      </p>
+      <div className="text-5xl font-mono font-bold text-accent">{count}</div>
+      <button
+        onClick={onRedirect}
+        className="w-full bg-surface border border-border text-text font-mono py-3 rounded-xl
+          hover:border-muted transition-all"
+      >
+        Hoziroq o'tish →
+      </button>
+    </div>
+  );
+}
+
 export default function DocsExamPage() {
   const router = useRouter();
-  const [phase, setPhase] = useState<Phase>('upload');
-  const [file, setFile] = useState<File | null>(null);
+  const [phase, setPhase]       = useState<Phase>('upload');
+  const [file, setFile]         = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [criteria, setCriteria] = useState<{ nomi?: string; label?: string; maksimal_ball?: number }[] | null>(null);
-  const [score, setScore] = useState(0);
+  const [score, setScore]       = useState(0);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
-  const [error, setError] = useState('');
-  const [token, setToken] = useState('');
+  const [error, setError]       = useState('');
+  const [token, setToken]       = useState('');
 
-  // Date-based aniq timer
-  const deadlineRef  = useRef<number>(0);
-  const rafRef       = useRef<number>(0);
-  const expiredRef   = useRef(false);
-  const inputRef     = useRef<HTMLInputElement>(null);
+  const deadlineRef = useRef<number>(0);
+  const rafRef      = useRef<number>(0);
+  const expiredRef  = useRef(false);
+  const inputRef    = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const user = getStoredUser();
-    if (!user)            { router.replace('/register');  return; }
-    if (user.docsDone)    { router.replace('/exam/pptx'); return; }
-    if (!user.testDone)   { router.replace('/exam/test'); return; }
+    if (!user)          { router.replace('/register');  return; }
+    if (user.docsDone)  { router.replace('/exam/pptx'); return; }
+    if (!user.testDone) { router.replace('/exam/test'); return; }
 
     setToken(user.userInfo.token);
     loadStatus(user.userInfo.token);
@@ -47,7 +83,16 @@ export default function DocsExamPage() {
     return () => { cancelAnimationFrame(rafRef.current); };
   }, [router]);
 
-  // rAF ticker — har frame da haqiqiy qolgan soniyani hisoblaydi
+  const handleExpired = useCallback(() => {
+    // FIX: localStorage ni yangilash — docsDone: true, docsScore: 0
+    const user = getStoredUser();
+    if (user && !user.docsDone) {
+      saveStoredUser({ ...user, docsDone: true, docsScore: 0 });
+    }
+    router.push('/exam/pptx');
+  }, [router]);
+
+  // rAF ticker
   const startTicker = useCallback((deadlineMs: number) => {
     const tick = () => {
       const remaining = Math.max(0, Math.round((deadlineMs - Date.now()) / 1000));
@@ -57,6 +102,12 @@ export default function DocsExamPage() {
         if (!expiredRef.current) {
           expiredRef.current = true;
           setPhase('expired');
+
+          // FIX: localStorage ni darhol yangilash
+          const user = getStoredUser();
+          if (user && !user.docsDone) {
+            saveStoredUser({ ...user, docsDone: true, docsScore: 0 });
+          }
         }
         return;
       }
@@ -72,11 +123,14 @@ export default function DocsExamPage() {
           status: string;
           submission: { score: number; feedback: string } | null;
           timeLimitSec: number;
-          criteria: { items: { label: string }[] } | null;
+          remainingSec?: number;
+          timeExpired?: boolean;
+          criteria: { baholash_mezonlari?: { nomi: string; maksimal_ball: number }[]; items?: { label: string }[] } | null;
         };
       };
       const { data } = res;
 
+      // Allaqachon yuklangan
       if (data.submission) {
         setScore(data.submission.score);
         try { setFeedback(JSON.parse(data.submission.feedback ?? '[]')); }
@@ -85,15 +139,27 @@ export default function DocsExamPage() {
         return;
       }
 
-      const total     = data.timeLimitSec ?? 1800;
-      // Backend remainingSec qaytarsa — ishon (refresh holatida to'g'ri qolgan vaqt)
-      // Aks holda to'liq limitdan boshla
-      const remaining = (data as { remainingSec?: number }).remainingSec ?? total;
+      // FIX: Backend vaqt tugagan deb qaytarsa — darhol redirect
+      if (data.timeExpired || data.remainingSec === 0) {
+        expiredRef.current = true;
+        setPhase('expired');
+        const user = getStoredUser();
+        if (user && !user.docsDone) {
+          saveStoredUser({ ...user, docsDone: true, docsScore: 0 });
+        }
+        return;
+      }
+
+      const total     = data.timeLimitSec ?? 1500;
+      const remaining = data.remainingSec ?? total;
 
       setTotalTime(total);
       setTimeLeft(remaining);
-      // criteria yangi format: { baholash_mezonlari: [...] } yoki eski { items: [...] }
-      const crit = data.criteria as { baholash_mezonlari?: { nomi: string; maksimal_ball: number }[]; items?: { label: string }[] } | null;
+
+      const crit = data.criteria as {
+        baholash_mezonlari?: { nomi: string; maksimal_ball: number }[];
+        items?: { label: string }[];
+      } | null;
       setCriteria(crit?.baholash_mezonlari ?? crit?.items ?? null);
 
       const deadline = Date.now() + remaining * 1000;
@@ -114,7 +180,6 @@ export default function DocsExamPage() {
       const res = await api.uploadDoc(token, file) as {
         data: { score: number; feedback: FeedbackItem[]; fileName: string };
       };
-      // Timerni to'xtatish
       cancelAnimationFrame(rafRef.current);
 
       const user = getStoredUser();
@@ -124,7 +189,7 @@ export default function DocsExamPage() {
       setFeedback(res.data.feedback);
       setPhase('done');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Fayl yuklanmadi. Qayta urinib ko\'ring.');
+      setError(err instanceof Error ? err.message : "Fayl yuklanmadi. Qayta urinib ko'ring.");
       setPhase('upload');
     }
   };
@@ -154,7 +219,7 @@ export default function DocsExamPage() {
   };
 
   const pct      = totalTime > 0 ? (timeLeft / totalTime) * 100 : 100;
-  const isUrgent = timeLeft > 0 && timeLeft < 300; // 5 daqiqa
+  const isUrgent = timeLeft > 0 && timeLeft < 300;
 
   return (
     <ExamLayout phase="docs">
@@ -180,19 +245,9 @@ export default function DocsExamPage() {
 
       <div className="flex-1 flex items-center justify-center px-4 py-8">
 
-        {/* ─── EXPIRED ─── */}
+        {/* ─── EXPIRED — FIX: countdown bilan ─── */}
         {phase === 'expired' && (
-          <div className="animate-scale-in text-center max-w-sm space-y-4">
-            <AlertTriangle size={48} className="text-error mx-auto" />
-            <h2 className="text-xl font-semibold text-text">Vaqt tugadi</h2>
-            <p className="text-sub text-sm">Afsuski, fayl yuklash vaqti tugadi.</p>
-            <button
-              onClick={() => router.push('/exam/pptx')}
-              className="w-full bg-surface border border-border text-text font-mono py-3 rounded-xl hover:border-muted transition-all"
-            >
-              PowerPoint bosqichiga o'tish →
-            </button>
-          </div>
+          <ExpiredRedirect onRedirect={handleExpired} />
         )}
 
         {/* ─── UPLOAD ─── */}
@@ -200,7 +255,10 @@ export default function DocsExamPage() {
           <div className="w-full max-w-lg space-y-6 animate-fade-in">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-text mb-1">Word fayl yuklash</h2>
-              <p className="text-sub text-sm">Topshiriqni bajarib, <span className="text-accent font-mono">.docx</span> faylini yuboring</p>
+              <p className="text-sub text-sm">
+                Topshiriqni bajarib,{' '}
+                <span className="text-accent font-mono">.docx</span> faylini yuboring
+              </p>
             </div>
 
             {/* Criteria */}
@@ -263,7 +321,8 @@ export default function DocsExamPage() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-error text-sm bg-error/10 border border-error/20 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2 text-error text-sm bg-error/10
+                border border-error/20 rounded-xl px-4 py-3">
                 <XCircle size={14} />
                 {error}
               </div>
@@ -273,7 +332,8 @@ export default function DocsExamPage() {
               onClick={handleUpload}
               disabled={!file || phase === 'uploading'}
               className="w-full bg-accent text-bg font-mono font-semibold py-3.5 rounded-xl
-                hover:bg-accent-dim transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                hover:bg-accent-dim transition-all disabled:opacity-40
+                flex items-center justify-center gap-2"
             >
               {phase === 'uploading' ? (
                 <>
